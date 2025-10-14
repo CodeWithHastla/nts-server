@@ -1,0 +1,38 @@
+# Git attributes для NTS Server
+
+# Normalize line endings
+* text=auto
+
+# JavaScript files
+*.js text eol=lf
+*.json text eol=lf
+
+# HTML and CSS files
+*.html text eol=lf
+*.css text eol=lf
+
+# Markdown files
+*.md text eol=lf
+
+# Batch files (Windows)
+*.bat text eol=crlf
+
+# Binary files
+*.db binary
+*.crx binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+
+# Node.js
+package-lock.json text eol=lf
+package.json text eol=lf
+
+# Environment files
+.env* text eol=lf
+
+# Git files
+.gitignore text eol=lf
+.gitattributes text eol=lf

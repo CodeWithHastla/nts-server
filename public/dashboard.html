@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NTS Server - Панель керування</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <header class="dashboard-header">
+      <h2>Панель керування</h2>
+      <p id="welcomeMessage"></p>
+    </header>
+    
+    <div class="dashboard-grid">
+      <!-- Блок управління користувачами -->
+      <div class="admin-block users-block">
+        <div class="block-header">
+          <h3>👥 Користувачі</h3>
+        </div>
+        
+        <!-- Пошук та фільтри -->
+        <div class="search-section">
+          <div class="search-controls">
+            <input type="text" id="searchInput" placeholder="Пошук користувачів...">
+            <select id="tagFilter">
+              <option value="">Всі теги</option>
+              <option value="RZ">RZ</option>
+              <option value="LB">LB</option>
+              <option value="KR">KR</option>
+            </select>
+            <select id="sortBy">
+              <option value="created_at">По даті</option>
+              <option value="username">По імені</option>
+              <option value="tag">По тегу</option>
+            </select>
+            <select id="sortOrder">
+              <option value="ASC">Спочатку старі</option>
+              <option value="DESC">Спочатку нові</option>
+            </select>
+            <button id="searchBtn" class="search-btn">🔍</button>
+          </div>
+        </div>
+        
+        <!-- Форма додавання користувача -->
+        <div class="user-form">
+          <h4>Додати користувача</h4>
+          <form id="addUserForm">
+            <div class="form-row">
+              <input type="text" id="newUsername" placeholder="Ім'я користувача" required>
+              <input type="password" id="newPassword" placeholder="Пароль" required>
+            </div>
+            <div class="form-row">
+              <select id="newUserTag" required>
+                <option value="">Оберіть тег</option>
+                <option value="RZ">RZ</option>
+                <option value="LB">LB</option>
+                <option value="KR">KR</option>
+              </select>
+              <select id="newUserRole" required>
+                <option value="0">Звичайний користувач</option>
+                <option value="1">Адміністратор</option>
+              </select>
+            </div>
+            <button type="submit">Додати</button>
+          </form>
+          <p id="addUserMsg" class="result-message"></p>
+        </div>
+        
+        <!-- Масові операції -->
+        <div class="bulk-operations">
+          <h4>Масові операції</h4>
+          <div class="bulk-controls">
+            <button id="selectAllBtn" class="bulk-btn">Вибрати всі</button>
+            <button id="bulkDeleteBtn" class="bulk-btn danger">Видалити вибрані</button>
+            <select id="bulkTagSelect">
+              <option value="">Змінити тег на...</option>
+              <option value="RZ">RZ</option>
+              <option value="LB">LB</option>
+              <option value="KR">KR</option>
+            </select>
+            <button id="bulkTagBtn" class="bulk-btn">Застосувати тег</button>
+          </div>
+        </div>
+        
+        <!-- Список користувачів -->
+        <div class="users-list">
+          <h4>Список користувачів</h4>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="selectAllCheckbox"></th>
+                  <th>ID</th>
+                  <th>Користувач</th>
+                  <th>Тег</th>
+                  <th>Статус</th>
+                  <th>Дата створення</th>
+                  <th>Дії</th>
+                </tr>
+              </thead>
+              <tbody id="usersTable">
+                <tr>
+                  <td colspan="7">Завантаження...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Пагінація -->
+          <div class="pagination" id="pagination">
+            <button id="prevBtn" class="pagination-btn" disabled>← Попередня</button>
+            <span id="pageInfo">Сторінка 1 з 1</span>
+            <button id="nextBtn" class="pagination-btn" disabled>Наступна →</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Блок аналітики -->
+      <div class="admin-block analytics-block">
+        <div class="block-header">
+          <h3>📊 Аналітика</h3>
+        </div>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h4>Загальна статистика</h4>
+            <div id="totalStats">
+              <p>Завантаження...</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <h4>Розподіл по тегах</h4>
+            <div id="tagStats">
+              <p>Завантаження...</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="export-section">
+          <h4>Експорт даних</h4>
+          <button id="exportCsvBtn" class="export-btn">📄 Експорт CSV</button>
+          <button id="exportJsonBtn" class="export-btn">📋 Експорт JSON</button>
+        </div>
+      </div>
+      
+      <!-- Блок управління системою -->
+      <div class="admin-block system-block">
+        <div class="block-header">
+          <h3>⚙️ Система</h3>
+        </div>
+        
+        <div class="backup-section">
+          <h4>Backup & Restore</h4>
+          <button id="createBackupBtn" class="backup-btn">💾 Створити Backup</button>
+          <div id="backupList">
+            <p>Завантаження backup файлів...</p>
+          </div>
+        </div>
+        
+        <div class="logs-section">
+          <h4>Логи системи</h4>
+          <button id="viewLogsBtn" class="logs-btn">📋 Переглянути логи</button>
+          <div id="logsContainer" class="logs-container" style="display: none;">
+            <div id="logsContent"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Блок активних сесій -->
+      <div class="admin-block sessions-block">
+        <div class="block-header">
+          <h3>👥 Активні користувачі</h3>
+        </div>
+        
+        <div class="sessions-controls">
+          <button id="refreshSessionsBtn" class="refresh-btn">🔄 Оновити</button>
+          <button id="cleanupSessionsBtn" class="cleanup-btn">🧹 Очистити старі</button>
+          <button id="logoutAllBtn" class="logout-all-btn danger">🚪 Вилогувати всіх</button>
+        </div>
+        
+        <div class="sessions-list">
+          <h4>Активні користувачі</h4>
+          <div id="lastUpdate" style="font-size: 11px; color: #999; margin-bottom: 10px;"></div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Користувач</th>
+                  <th>Тег</th>
+                  <th>Статус</th>
+                  <th>Остання активність</th>
+                  <th>Дії</th>
+                </tr>
+              </thead>
+              <tbody id="sessionsTable">
+                <tr>
+                  <td colspan="5">Завантаження...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="dashboard-footer">
+      <button id="logoutBtn" class="logout-btn">Вийти</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

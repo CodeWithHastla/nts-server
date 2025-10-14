@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>SL Script</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 15px;
+    width: 350px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    color: #333;
+    border: 1px solid rgba(255,140,0,0.3);
+    margin: 0;
+  }
+  
+  h1 {
+    font-size: 18px;
+    margin: 0 0 15px 0;
+    text-align: center;
+    color: #ff7f50;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  input {
+    display: block;
+    width: calc(100% - 20px);
+    margin: 8px 0;
+    padding: 12px;
+    border: none;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.7);
+    color: #333;
+    font-size: 14px;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  input::placeholder {
+    color: rgba(80,40,0,0.7);
+  }
+  
+  button {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+    padding: 12px;
+    border: none;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #ff7f50, #ff914d);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255,127,80,0.4);
+    font-size: 14px;
+  }
+  
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255,127,80,0.6);
+  }
+  
+  .quick-action-btn {
+    display: inline-block;
+    width: calc(50% - 4px);
+    margin: 4px 2px;
+    padding: 8px;
+    font-size: 12px;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+  }
+  
+  .quick-action-btn.danger {
+    background: linear-gradient(135deg, #f44336, #da190b);
+  }
+  
+  .quick-action-btn.disabled {
+    background: linear-gradient(135deg, #9e9e9e, #757575);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  .quick-action-btn.disabled:hover {
+    transform: none;
+    box-shadow: 0 4px 12px rgba(158, 158, 158, 0.4);
+  }
+  
+  #status {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #ff7f50;
+    text-align: center;
+  }
+  
+  #timerWindow {
+    display: none;
+  }
+  
+  #timer {
+    font-size: 28px;
+    margin: 15px 0;
+    color: #ff7f50;
+    text-align: center;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    backdrop-filter: blur(5px);
+  }
+  
+  .user-avatar {
+    font-size: 24px;
+    margin-right: 10px;
+  }
+  
+  .user-details {
+    flex: 1;
+  }
+  
+  .user-name {
+    font-weight: bold;
+    color: #ff7f50;
+    margin-bottom: 5px;
+  }
+  
+  .user-stats {
+    font-size: 11px;
+    color: #666;
+  }
+  
+  .stat {
+    display: block;
+    margin: 2px 0;
+  }
+  
+  .server-status {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    padding: 8px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+  
+  .server-status.online {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+  }
+  
+  .server-status.offline {
+    background: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+  }
+  
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    background: currentColor;
+  }
+  
+  .session-stats {
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(5px);
+  }
+  
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+    font-size: 12px;
+  }
+  
+  .stat-label {
+    color: #666;
+  }
+  
+  .stat-value {
+    color: #ff7f50;
+    font-weight: bold;
+  }
+  
+  .quick-actions {
+    margin: 15px 0;
+  }
+  
+  .quick-actions h3 {
+    font-size: 14px;
+    margin: 0 0 10px 0;
+    color: #ff7f50;
+    text-align: center;
+  }
+  
+  .dark-theme {
+    background: linear-gradient(135deg, rgba(30,30,30,0.9), rgba(20,20,20,0.8));
+    color: #fff;
+    border: 1px solid rgba(255,140,0,0.2);
+  }
+  
+  .dark-theme input {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  
+  .dark-theme .user-info,
+  .dark-theme .session-stats {
+    background: rgba(255,255,255,0.05);
+  }
+  
+  /* Remember me checkbox styles */
+  input[type="checkbox"] {
+    width: auto !important;
+    margin: 0 8px 0 0 !important;
+    padding: 0 !important;
+    transform: scale(1.2);
+    accent-color: #ff7f50;
+  }
+  
+  label {
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .dark-theme label {
+    color: #ccc;
+  }
+  
+  /* Contact link styles */
+  a[href*="t.me"] {
+    transition: color 0.3s ease;
+  }
+  
+  a[href*="t.me"]:hover {
+    color: #ff914d !important;
+    text-decoration: underline !important;
+  }
+</style>
+</head>
+<body>
+
+<div id="loginWindow">
+  <h1>🚛 SL Script</h1>
+  <input type="text" id="userId" placeholder="Ім'я користувача">
+  <input type="password" id="token" placeholder="Пароль">
+  <label style="display: flex; align-items: center; margin: 10px 0; font-size: 12px; color: #666;">
+    <input type="checkbox" id="rememberMe" style="width: auto; margin-right: 8px;">
+    Запам'ятати мене
+  </label>
+  <button id="loginBtn">Увійти</button>
+  <button id="clearSavedDataBtn" style="margin-top: 5px; background: #6c757d; font-size: 11px; padding: 8px;">🗑️ Очистити збережені дані</button>
+  <div id="status"></div>
+  <div style="text-align: center; margin-top: 15px; font-size: 11px; color: #666; font-style: italic;">Питання -> <a href="https://t.me/usdcethbtc" target="_blank" style="color: #ff7f50; text-decoration: none;">usdcethbtc</a></div>
+</div>
+
+<div id="timerWindow">
+  <h1>⏱ SL Script</h1>
+  
+  <!-- Інформація про користувача -->
+  <div id="userInfo"></div>
+  
+  <!-- Статус сервера -->
+  <div id="serverStatus"></div>
+  
+  <!-- Таймер -->
+  <div id="timer">00:00:00</div>
+  
+  <!-- Статистика сесії -->
+  <div class="session-stats">
+    <h3>📊 Статистика сесії</h3>
+    <div id="sessionStats"></div>
+  </div>
+  
+  <!-- Швидкі дії -->
+  <div class="quick-actions">
+    <h3>⚡ Швидкі дії</h3>
+    <div id="quickActions"></div>
+  </div>
+  
+  <!-- Кнопки управління -->
+  <button id="logoutBtn">🚪 Вийти</button>
+  <button id="testBtn" style="margin-top: 10px; background: #4CAF50;">🧪 Тест</button>
+  <div style="text-align: center; margin-top: 15px; font-size: 11px; color: #666; font-style: italic;">Питання -> <a href="https://t.me/usdcethbtc" target="_blank" style="color: #ff7f50; text-decoration: none;">usdcethbtc</a></div>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>

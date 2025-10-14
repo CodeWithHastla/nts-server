@@ -1,0 +1,37 @@
+{
+  "name": "nts_server",
+  "version": "1.0.0",
+  "description": "Веб-додаток для управління користувачами з JWT автентифікацією",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "NODE_ENV=development node server.js",
+    "prod": "NODE_ENV=production node server.js",
+    "install-deps": "npm install",
+    "setup": "npm install && echo 'Сервер готовий до запуску!'",
+    "backup": "node -e \"console.log('Створення backup через API...')\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["nodejs", "express", "jwt", "sqlite", "authentication", "server"],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "sqlite3": "^5.1.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/nts-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/nts-server/issues"
+  },
+  "homepage": "https://github.com/yourusername/nts-server#readme"
+}

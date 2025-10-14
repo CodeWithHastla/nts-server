@@ -1,0 +1,26 @@
+# Environment Variables для NTS Server
+
+# Порт сервера
+PORT=3000
+
+# JWT Secret Key (ОБОВ'ЯЗКОВО змінити в production!)
+JWT_SECRET=super_secret_key_change_this_in_production
+
+# Режим роботи (development/production)
+NODE_ENV=development
+
+# Налаштування бази даних (опціонально)
+DB_PATH=./database.db
+
+# Налаштування логування
+LOG_LEVEL=info
+
+# CORS налаштування (опціонально)
+CORS_ORIGIN=*
+
+# Налаштування сесій
+SESSION_TIMEOUT=24h
+
+# Backup налаштування
+BACKUP_ENABLED=true
+BACKUP_RETENTION_DAYS=30
