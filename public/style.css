@@ -734,3 +734,152 @@ button[type="submit"]:hover {
     margin-bottom: 15px;
   }
 }
+<<<<<<< HEAD
+=======
+
+/* === СТИЛІ ДЛЯ БЕЗПЕКИ === */
+.security-block {
+  grid-column: 1 / -1;
+}
+
+.security-stats {
+  margin-bottom: 20px;
+}
+
+.security-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.country-stats, .top-ips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.country-item, .ip-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #007bff;
+}
+
+.ip-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.ip-controls input {
+  flex: 1;
+  min-width: 150px;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.add-ip-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.add-ip-btn:hover {
+  background-color: #218838;
+}
+
+.block-ip-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.block-ip-btn:hover {
+  background-color: #c82333;
+}
+
+.unblock-btn {
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.3s;
+}
+
+.unblock-btn:hover {
+  background-color: #138496;
+}
+
+/* Стилі для IP адрес та локації */
+.ip-address {
+  font-family: 'Courier New', monospace;
+  background-color: #e9ecef;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.location {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* Стилі для секцій безпеки */
+.allowed-ips-section, .blocked-ips-section {
+  margin-bottom: 25px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #007bff;
+}
+
+.blocked-ips-section {
+  border-left-color: #dc3545;
+}
+
+.allowed-ips-section h4, .blocked-ips-section h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #495057;
+}
+
+/* Додаткові стилі для мобільних пристроїв */
+@media (max-width: 768px) {
+  .ip-controls {
+    flex-direction: column;
+  }
+  
+  .ip-controls input {
+    min-width: 100%;
+  }
+  
+  .security-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .country-stats, .top-ips {
+    grid-template-columns: 1fr;
+  }
+}
+>>>>>>> 3a26729 (Update NTS Server)

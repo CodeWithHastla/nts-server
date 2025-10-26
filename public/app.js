@@ -1,3 +1,42 @@
+// === ФУНКЦІЇ ФОРМАТУВАННЯ ДАТ ДЛЯ ПОЛЬЩІ ===
+function formatDateTimeForPoland(dateString) {
+  if (!dateString) return 'Не вказано';
+  
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleString('pl-PL', {
+      timeZone: 'Europe/Warsaw',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString;
+  }
+}
+
+function formatDateForPoland(dateString) {
+  if (!dateString) return 'Не вказано';
+  
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pl-PL', {
+      timeZone: 'Europe/Warsaw',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString;
+  }
+}
+
 // Статус сервера
 let serverOnline = true;
 
@@ -122,6 +161,7 @@ if (welcomeMessage) {
         initializeAnalytics();
         initializeSystemManagement();
         initializeSessions();
+        initializeSecurity();
         // Завантажуємо список користувачів
         loadUsers();
       } else {
@@ -721,7 +761,7 @@ function displayBackups(backups) {
   
   let html = '';
   backups.forEach(backup => {
-    const date = new Date(backup.created).toLocaleString('uk-UA');
+    const date = formatDateTimeForPoland(backup.created);
     const sizeKB = Math.round(backup.size / 1024);
     
     html += `
@@ -800,7 +840,7 @@ function displayLogs(logs) {
   
   let html = '';
   logs.forEach(log => {
-    const date = new Date(log.timestamp).toLocaleString('uk-UA');
+    const date = log.timestamp_formatted || formatDateTimeForPoland(log.timestamp);
     html += `
       <div class="log-entry log-level-${log.level}">
         [${date}] ${log.level.toUpperCase()}: ${log.message}
@@ -826,7 +866,11 @@ function displayUsers(users) {
   
   users.forEach((user, index) => {
     const tr = document.createElement('tr');
+<<<<<<< HEAD
     const createdDate = new Date(user.created_at).toLocaleDateString('uk-UA');
+=======
+    const createdDate = user.created_at_formatted || formatDateForPoland(user.created_at);
+>>>>>>> 3a26729 (Update NTS Server)
     const rowNumber = (currentPage - 1) * 10 + index + 1; // Номер рядка по порядку
     
     console.log(`👤 User ${user.username}: is_admin = ${user.is_admin}`);
@@ -961,14 +1005,26 @@ function displaySessions(sessions) {
   tbody.innerHTML = '';
   
   if (sessions.length === 0) {
+<<<<<<< HEAD
     tbody.innerHTML = '<tr><td colspan="5">Немає активних сесій</td></tr>';
+=======
+    tbody.innerHTML = '<tr><td colspan="7">Немає активних сесій</td></tr>';
+>>>>>>> 3a26729 (Update NTS Server)
     return;
   }
   
   sessions.forEach(session => {
     const tr = document.createElement('tr');
+<<<<<<< HEAD
     const loginTime = new Date(session.login_time).toLocaleString('uk-UA');
     const lastActivity = new Date(session.last_activity).toLocaleString('uk-UA');
+=======
+    const loginTime = session.login_time_formatted || formatDateTimeForPoland(session.login_time);
+    const lastActivity = session.last_activity_formatted || formatDateTimeForPoland(session.last_activity);
+    
+    // Форматуємо локацію
+    const location = session.location || `${session.city || 'Unknown'}, ${session.country || 'Unknown'}`;
+>>>>>>> 3a26729 (Update NTS Server)
     
     tr.innerHTML = `
       <td>${session.username}</td>
@@ -978,6 +1034,15 @@ function displaySessions(sessions) {
         </span>
       </td>
       <td>
+<<<<<<< HEAD
+=======
+        <span class="ip-address" title="${session.user_agent || ''}">${session.ip || 'Unknown'}</span>
+      </td>
+      <td>
+        <span class="location" title="Часовий пояс: ${session.timezone || 'Unknown'}">${location}</span>
+      </td>
+      <td>
+>>>>>>> 3a26729 (Update NTS Server)
         <span class="status-online">🟢 Онлайн</span>
       </td>
       <td>${lastActivity}</td>
@@ -988,6 +1053,15 @@ function displaySessions(sessions) {
       </td>`;
     tbody.appendChild(tr);
   });
+<<<<<<< HEAD
+=======
+  
+  // Оновлюємо час останнього оновлення
+  const lastUpdateDiv = document.getElementById('lastUpdate');
+  if (lastUpdateDiv) {
+    lastUpdateDiv.textContent = `Останнє оновлення: ${formatDateTimeForPoland(new Date().toISOString())}`;
+  }
+>>>>>>> 3a26729 (Update NTS Server)
 }
 
 window.logoutUser = async function logoutUser(username) {
@@ -1055,3 +1129,346 @@ async function cleanupOldSessions() {
     alert('Помилка очищення старих сесій');
   }
 }
+// === ФУНКЦІЇ БЕЗПЕКИ ===
+function initializeSecurity() {
+  // Завантажуємо статистику безпеки
+  loadSecurityStats();
+  
+  // Завантажуємо дозволені IP
+  loadAllowedIPs();
+  
+  // Завантажуємо заблоковані IP
+  loadBlockedIPs();
+  
+  // Додаємо обробники подій
+  const addAllowedIPBtn = document.getElementById('addAllowedIPBtn');
+  const addBlockedIPBtn = document.getElementById('addBlockedIPBtn');
+  
+  if (addAllowedIPBtn) {
+    addAllowedIPBtn.addEventListener('click', addAllowedIP);
+  }
+  
+  if (addBlockedIPBtn) {
+    addBlockedIPBtn.addEventListener('click', addBlockedIP);
+  }
+}
+
+// Завантаження статистики безпеки
+async function loadSecurityStats() {
+  try {
+    const res = await fetch('/security/stats', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    if (!res.ok) throw new Error('Помилка завантаження статистики безпеки');
+    
+    const stats = await res.json();
+    displaySecurityStats(stats);
+  } catch (err) {
+    console.error('Security stats error:', err);
+    const statsDiv = document.getElementById('securityStats');
+    if (statsDiv) {
+      statsDiv.innerHTML = '<p>❌ Помилка завантаження статистики безпеки</p>';
+    }
+  }
+}
+
+// Відображення статистики безпеки
+function displaySecurityStats(stats) {
+  const statsDiv = document.getElementById('securityStats');
+  if (!statsDiv) return;
+  
+  let html = `
+    <div class="security-stats-grid">
+      <div class="stat-item">
+        <span>Дозволених IP:</span>
+        <span class="stat-value">${stats.allowedIPs}</span>
+      </div>
+      <div class="stat-item">
+        <span>Заблокованих IP:</span>
+        <span class="stat-value">${stats.blockedIPs}</span>
+      </div>
+    </div>
+  `;
+  
+  if (stats.countryDistribution && stats.countryDistribution.length > 0) {
+    html += '<h5>Активність по країнах:</h5><div class="country-stats">';
+    stats.countryDistribution.forEach(country => {
+      html += `
+        <div class="country-item">
+          <span>${country.country}:</span>
+          <span class="stat-value">${country.count}</span>
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+  
+  if (stats.topIPs && stats.topIPs.length > 0) {
+    html += '<h5>Топ IP адреси:</h5><div class="top-ips">';
+    stats.topIPs.forEach(ip => {
+      html += `
+        <div class="ip-item">
+          <span>${ip.ip} (${ip.country}, ${ip.city}):</span>
+          <span class="stat-value">${ip.login_count} входів</span>
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+  
+  statsDiv.innerHTML = html;
+}
+
+// Завантаження дозволених IP
+async function loadAllowedIPs() {
+  try {
+    const res = await fetch('/security/allowed-ips', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    if (!res.ok) throw new Error('Помилка завантаження дозволених IP');
+    
+    const data = await res.json();
+    displayAllowedIPs(data.allowedIPs);
+  } catch (err) {
+    console.error('Load allowed IPs error:', err);
+    const tbody = document.getElementById('allowedIPsTable');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="4">❌ Помилка завантаження дозволених IP</td></tr>';
+    }
+  }
+}
+
+// Відображення дозволених IP
+function displayAllowedIPs(ips) {
+  const tbody = document.getElementById('allowedIPsTable');
+  if (!tbody) return;
+  
+  tbody.innerHTML = '';
+  
+  if (ips.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4">Дозволених IP адрес не знайдено</td></tr>';
+    return;
+  }
+  
+  ips.forEach(ip => {
+    const tr = document.createElement('tr');
+    const createdDate = ip.created_at_formatted || formatDateForPoland(ip.created_at);
+    
+    tr.innerHTML = `
+      <td>${ip.ip_address}</td>
+      <td>${ip.description || '-'}</td>
+      <td>${createdDate}</td>
+      <td>
+        <button class="delete-btn" onclick="removeAllowedIP(${ip.id})">
+          Видалити
+        </button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// Додавання дозволеного IP
+async function addAllowedIP() {
+  const ipInput = document.getElementById('newAllowedIP');
+  const descInput = document.getElementById('newAllowedIPDesc');
+  
+  const ip = ipInput.value.trim();
+  const description = descInput.value.trim();
+  
+  if (!ip) {
+    alert('Введіть IP адресу');
+    return;
+  }
+  
+  // Проста валідація IP
+  const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  if (!ipRegex.test(ip)) {
+    alert('Введіть коректну IP адресу');
+    return;
+  }
+  
+  try {
+    const res = await fetch('/security/allowed-ips', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        ip_address: ip,
+        description: description
+      })
+    });
+    
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message);
+      ipInput.value = '';
+      descInput.value = '';
+      loadAllowedIPs(); // Перезавантажуємо список
+      loadSecurityStats(); // Оновлюємо статистику
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    console.error('Add allowed IP error:', err);
+    alert('Помилка додавання IP адреси');
+  }
+}
+
+// Видалення дозволеного IP
+window.removeAllowedIP = async function removeAllowedIP(id) {
+  if (!confirm('Видалити цю IP адресу з дозволених?')) return;
+  
+  try {
+    const res = await fetch(`/security/allowed-ips/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message);
+      loadAllowedIPs(); // Перезавантажуємо список
+      loadSecurityStats(); // Оновлюємо статистику
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    console.error('Remove allowed IP error:', err);
+    alert('Помилка видалення IP адреси');
+  }
+}
+
+// Завантаження заблокованих IP
+async function loadBlockedIPs() {
+  try {
+    const res = await fetch('/security/blocked-ips', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    if (!res.ok) throw new Error('Помилка завантаження заблокованих IP');
+    
+    const data = await res.json();
+    displayBlockedIPs(data.blockedIPs);
+  } catch (err) {
+    console.error('Load blocked IPs error:', err);
+    const tbody = document.getElementById('blockedIPsTable');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="5">❌ Помилка завантаження заблокованих IP</td></tr>';
+    }
+  }
+}
+
+// Відображення заблокованих IP
+function displayBlockedIPs(ips) {
+  const tbody = document.getElementById('blockedIPsTable');
+  if (!tbody) return;
+  
+  tbody.innerHTML = '';
+  
+  if (ips.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5">Заблокованих IP адрес не знайдено</td></tr>';
+    return;
+  }
+  
+  ips.forEach(ip => {
+    const tr = document.createElement('tr');
+    const blockedDate = ip.blocked_at_formatted || formatDateForPoland(ip.blocked_at);
+    
+    tr.innerHTML = `
+      <td>${ip.ip_address}</td>
+      <td>${ip.reason || '-'}</td>
+      <td>${blockedDate}</td>
+      <td>${ip.blocked_by || '-'}</td>
+      <td>
+        <button class="unblock-btn" onclick="removeBlockedIP(${ip.id})">
+          Розблокувати
+        </button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// Додавання заблокованого IP
+async function addBlockedIP() {
+  const ipInput = document.getElementById('newBlockedIP');
+  const reasonInput = document.getElementById('newBlockedIPReason');
+  
+  const ip = ipInput.value.trim();
+  const reason = reasonInput.value.trim();
+  
+  if (!ip) {
+    alert('Введіть IP адресу');
+    return;
+  }
+  
+  // Проста валідація IP
+  const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  if (!ipRegex.test(ip)) {
+    alert('Введіть коректну IP адресу');
+    return;
+  }
+  
+  if (!reason) {
+    alert('Введіть причину блокування');
+    return;
+  }
+  
+  if (!confirm(`Заблокувати IP адресу ${ip}?\nПричина: ${reason}`)) return;
+  
+  try {
+    const res = await fetch('/security/blocked-ips', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        ip_address: ip,
+        reason: reason
+      })
+    });
+    
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message);
+      ipInput.value = '';
+      reasonInput.value = '';
+      loadBlockedIPs(); // Перезавантажуємо список
+      loadSecurityStats(); // Оновлюємо статистику
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    console.error('Add blocked IP error:', err);
+    alert('Помилка блокування IP адреси');
+  }
+}
+
+// Розблокування IP
+window.removeBlockedIP = async function removeBlockedIP(id) {
+  if (!confirm('Розблокувати цю IP адресу?')) return;
+  
+  try {
+    const res = await fetch(`/security/blocked-ips/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message);
+      loadBlockedIPs(); // Перезавантажуємо список
+      loadSecurityStats(); // Оновлюємо статистику
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    console.error('Remove blocked IP error:', err);
+    alert('Помилка розблокування IP адреси');
+  }
+}
+>>>>>>> 3a26729 (Update NTS Server)

@@ -9,7 +9,22 @@
     "prod": "NODE_ENV=production node server.js",
     "install-deps": "npm install",
     "setup": "npm install && echo 'Сервер готовий до запуску!'",
+<<<<<<< HEAD
     "backup": "node -e \"console.log('Створення backup через API...')\"",
+=======
+    "setup-production": "setup-production.bat",
+    "backup": "node backup-script.js",
+    "monitor": "node monitor-server.js",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+    "pm2:stop": "pm2 stop nts-server",
+    "pm2:restart": "pm2 restart nts-server",
+    "pm2:status": "pm2 status",
+    "pm2:logs": "pm2 logs nts-server",
+    "pm2:monit": "pm2 monit",
+    "firewall:setup": "setup-firewall.bat",
+    "backup:schedule": "setup-backup-scheduler.bat",
+    "check-ready": "check-production-ready.bat",
+>>>>>>> 3a26729 (Update NTS Server)
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["nodejs", "express", "jwt", "sqlite", "authentication", "server"],

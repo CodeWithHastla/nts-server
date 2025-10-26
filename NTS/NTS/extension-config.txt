@@ -1,0 +1,6 @@
+# NTS Extension Configuration 
+Generated: 15.10.2025 11:22:11,91 
+API_URL: http://91.246.73.24:8000 
+Config: internet 
+Public_IP: 91.246.73.24 
+Port: 8000 

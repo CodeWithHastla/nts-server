@@ -5,7 +5,11 @@ console.log("🚀 SL Script завантажено");
 
 // === КОНФІГУРАЦІЯ ===
 const CONFIG = {
+<<<<<<< HEAD
   API_BASE_URL: "http://localhost:3000",
+=======
+  API_BASE_URL: "http://164.92.182.162:8000",
+>>>>>>> 3a26729 (Update NTS Server)
   SELECTORS: {
     timocomId: '.Normalize_normalize__LfLr9u.Link_root__UBnUWu.Link_fontStyling__iYOSOE.HeaderTitle_profileLink__YiVgzP',
     contactName: '.ContactView_name__z6l8Vf',
@@ -64,13 +68,18 @@ class Utils {
 
     if (countryCode === 'GB' || countryCode === 'IE') {
       return `${countryCode} ${cityRaw} (${countryFull})`;
+<<<<<<< HEAD
 } else {
+=======
+    } else {
+>>>>>>> 3a26729 (Update NTS Server)
       const zipMatch = cityRaw.match(/\d{2}/);
       const zipCode = zipMatch ? zipMatch[0] : '00';
       return `${countryCode} ${zipCode} (${countryFull})`;
     }
   }
 
+<<<<<<< HEAD
   static waitForElement(selector, callback) {
     const el = document.querySelector(selector);
     if (el) {
@@ -85,6 +94,67 @@ class Utils {
       });
       observer.observe(document.body, { childList: true, subtree: true });
     }
+=======
+  // Оптимізована функція очікування елементів з дебаунсингом
+  static waitForElement(selector, callback, timeout = 10000) {
+    const el = document.querySelector(selector);
+    if (el) {
+      callback(el);
+      return;
+    }
+
+    let timeoutId;
+    const observer = new MutationObserver(() => {
+      const elNow = document.querySelector(selector);
+      if (elNow) {
+        observer.disconnect();
+        clearTimeout(timeoutId);
+        callback(elNow);
+      }
+    });
+    
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true,
+      attributes: false,
+      characterData: false
+    });
+    
+    // Таймаут для запобігання нескінченному очікуванню
+    timeoutId = setTimeout(() => {
+      observer.disconnect();
+      console.warn(`Element ${selector} not found within ${timeout}ms`);
+    }, timeout);
+  }
+
+  // Кешування DOM запитів
+  static cache = new Map();
+  
+  static getCachedElement(selector) {
+    if (!this.cache.has(selector)) {
+      const element = document.querySelector(selector);
+      this.cache.set(selector, element);
+      
+      // Очищаємо кеш кожні 30 секунд
+      setTimeout(() => {
+        this.cache.delete(selector);
+      }, 30000);
+    }
+    return this.cache.get(selector);
+  }
+
+  // Дебаунсинг для функцій
+  static debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+>>>>>>> 3a26729 (Update NTS Server)
   }
 
   static processWeight(weightText) {
@@ -249,6 +319,7 @@ class ButtonManager {
           const loadCode = document.querySelector(CONFIG.SELECTORS.loadingCity0)?.textContent.trim() || '-';
           const unloadC = document.querySelector(CONFIG.SELECTORS.loadingCountry1)?.textContent.trim() || '-';
           const unloadCode = document.querySelector(CONFIG.SELECTORS.loadingCity1)?.textContent.trim() || '-';
+<<<<<<< HEAD
         const label = `${loadC} ${loadCode} - ${unloadC} ${unloadCode}`;
         const url = window.location.href;
           const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.transHistory) || '[]');
@@ -256,6 +327,17 @@ class ButtonManager {
           localStorage.setItem(CONFIG.STORAGE_KEYS.transHistory, JSON.stringify(history));
           if (window.historyManager) window.historyManager.updateList();
         return label;
+=======
+          const label = `${loadC} ${loadCode} - ${unloadC} ${unloadCode}`;
+          const url = window.location.href;
+          
+          // Використовуємо оптимізований метод додавання до історії
+          if (window.historyManager) {
+            window.historyManager.addToHistory(url, label);
+          }
+          
+          return label;
+>>>>>>> 3a26729 (Update NTS Server)
         },
         label: "Додано вручну"
       },
@@ -314,11 +396,18 @@ class ButtonManager {
   const vehicleBody = matchedTypes.length ? matchedTypes.join(', ') : vehicleBodyRaw;
 
     // Додаємо до історії
+<<<<<<< HEAD
   const url = window.location.href;
     const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.transHistory) || '[]');
   history.unshift({ url, label: historyLabel });
     localStorage.setItem(CONFIG.STORAGE_KEYS.transHistory, JSON.stringify(history));
     if (window.historyManager) window.historyManager.updateList();
+=======
+    const url = window.location.href;
+    if (window.historyManager) {
+      window.historyManager.addToHistory(url, historyLabel);
+    }
+>>>>>>> 3a26729 (Update NTS Server)
 
   return `Potrzebujemy następujący typ autka: ${vehicleBody}.
 Typ załadunku: ${loadType}
@@ -370,10 +459,16 @@ Dodatkowe wymagania: ${Special}
 
     // Додаємо до історії
     const url = window.location.href;
+<<<<<<< HEAD
     const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.transHistory) || '[]');
     history.unshift({ url, label: historyLabel });
     localStorage.setItem(CONFIG.STORAGE_KEYS.transHistory, JSON.stringify(history));
     if (window.historyManager) window.historyManager.updateList();
+=======
+    if (window.historyManager) {
+      window.historyManager.addToHistory(url, historyLabel);
+    }
+>>>>>>> 3a26729 (Update NTS Server)
 
     return `
 
@@ -397,9 +492,37 @@ Additional requirements: ${Special}
 class HistoryManager {
   constructor(toastManager) {
     this.toastManager = toastManager;
+<<<<<<< HEAD
     this.createHistoryInterface();
   }
 
+=======
+    this.maxHistoryItems = 100; // Обмежуємо кількість елементів в історії
+    this.createHistoryInterface();
+  }
+
+  // Оптимізоване додавання до історії з обмеженням розміру
+  addToHistory(url, label) {
+    const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.transHistory) || '[]');
+    
+    // Додаємо новий елемент на початок
+    history.unshift({ url, label });
+    
+    // Обмежуємо розмір історії
+    if (history.length > this.maxHistoryItems) {
+      history.splice(this.maxHistoryItems);
+    }
+    
+    // Зберігаємо оновлену історію
+    localStorage.setItem(CONFIG.STORAGE_KEYS.transHistory, JSON.stringify(history));
+    
+    // Оновлюємо список тільки якщо інтерфейс відкритий
+    if (this.entriesContainer && this.entriesContainer.parentElement.style.display !== 'none') {
+      this.updateList();
+    }
+  }
+
+>>>>>>> 3a26729 (Update NTS Server)
   createHistoryInterface() {
   const historyWrapper = document.createElement('div');
   historyWrapper.style.cssText = 'position: fixed; top: 60px; right: 900px; width: 280px; z-index: 9999; font-family: "Segoe UI", sans-serif;';
@@ -626,15 +749,43 @@ class FirmMarkerManager {
       btn3: 'marked_tc_ids_3'
     };
     this.lastTCID = null;
+<<<<<<< HEAD
+=======
+    this.lastCheckTime = 0;
+    this.checkInterval = 5000; // Збільшуємо інтервал до 5 секунд
+>>>>>>> 3a26729 (Update NTS Server)
     this.initialize();
   }
 
   initialize() {
+<<<<<<< HEAD
     const observer = new MutationObserver(() => {
       this.checkAndUpdate();
     });
     observer.observe(document.body, { childList: true, subtree: true });
     setInterval(() => this.checkAndUpdate(), 2000);
+=======
+    // Оптимізований observer з дебаунсингом
+    const debouncedCheck = Utils.debounce(() => {
+      this.checkAndUpdate();
+    }, 1000);
+
+    const observer = new MutationObserver(() => {
+      debouncedCheck();
+    });
+    
+    // Спостерігаємо тільки за змінами в конкретних областях
+    const targetNode = document.querySelector('[class*="HeaderTitle_"]')?.parentElement || document.body;
+    observer.observe(targetNode, { 
+      childList: true, 
+      subtree: true,
+      attributes: false,
+      characterData: false
+    });
+    
+    // Зменшуємо частоту перевірок
+    setInterval(() => this.checkAndUpdate(), this.checkInterval);
+>>>>>>> 3a26729 (Update NTS Server)
   }
 
   findTCIDElement() {
@@ -690,6 +841,14 @@ class FirmMarkerManager {
   }
 
   checkAndUpdate() {
+<<<<<<< HEAD
+=======
+    // Перевіряємо чи пройшло достатньо часу з останньої перевірки
+    const now = Date.now();
+    if (now - this.lastCheckTime < 1000) return; // Мінімум 1 секунда між перевірками
+    this.lastCheckTime = now;
+
+>>>>>>> 3a26729 (Update NTS Server)
     const tcIdElement = this.findTCIDElement();
     if (!tcIdElement) return;
 
@@ -700,13 +859,29 @@ class FirmMarkerManager {
     if (id !== this.lastTCID) {
       this.lastTCID = id;
 
+<<<<<<< HEAD
       const oldBtn1 = document.querySelector('#mark-firm-btn-1');
       const oldBtn2 = document.querySelector('#mark-firm-btn-2');
       const oldBtn3 = document.querySelector('#mark-firm-btn-3');
+=======
+      // Використовуємо кешовані селектори для швидшого пошуку
+      const oldBtn1 = Utils.getCachedElement('#mark-firm-btn-1');
+      const oldBtn2 = Utils.getCachedElement('#mark-firm-btn-2');
+      const oldBtn3 = Utils.getCachedElement('#mark-firm-btn-3');
+      
+>>>>>>> 3a26729 (Update NTS Server)
       if (oldBtn1) oldBtn1.remove();
       if (oldBtn2) oldBtn2.remove();
       if (oldBtn3) oldBtn3.remove();
 
+<<<<<<< HEAD
+=======
+      // Очищаємо кеш після видалення
+      Utils.cache.delete('#mark-firm-btn-1');
+      Utils.cache.delete('#mark-firm-btn-2');
+      Utils.cache.delete('#mark-firm-btn-3');
+
+>>>>>>> 3a26729 (Update NTS Server)
       this.createButton(tcIdElement, id, this.storageKeys.btn1, 'mark-firm-btn-1', 50, 'red');
       this.createButton(tcIdElement, id, this.storageKeys.btn2, 'mark-firm-btn-2', 70, 'yellow');
       this.createButton(tcIdElement, id, this.storageKeys.btn3, 'mark-firm-btn-3', 90, 'green');
@@ -753,10 +928,15 @@ class TransportManager {
     const label = `${loadC} ${loadCode} - ${unloadC} ${unloadCode}`;
     const url = window.location.href;
 
+<<<<<<< HEAD
     const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.transHistory) || '[]');
     history.unshift({ url, label });
     localStorage.setItem(CONFIG.STORAGE_KEYS.transHistory, JSON.stringify(history));
     this.historyManager.updateList();
+=======
+    // Використовуємо оптимізований метод додавання до історії
+    this.historyManager.addToHistory(url, label);
+>>>>>>> 3a26729 (Update NTS Server)
 
     window.open("https://platform.trans.eu/dashboards", "_blank", 'width=1605,height=800,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes');
   }
@@ -786,6 +966,44 @@ class SLExtension {
     
     // Ініціалізуємо лічильник generate
     this.initializeGenerateCounter();
+<<<<<<< HEAD
+=======
+    
+    // Додаємо метод очищення
+    this.cleanup = this.cleanup.bind(this);
+  }
+  
+  // === МЕТОД ОЧИЩЕННЯ ===
+  cleanup() {
+    console.log("🧹 Очищення розширення...");
+    
+    // Зупиняємо всі інтервали та таймери
+    TokenMonitor.stop();
+    
+    // Видаляємо всі елементи розширення
+    const selectors = [
+      '[style*="position: fixed"][style*="z-index: 9999"]',
+      '[style*="position: fixed"][style*="z-index: 10000"]',
+      '#mark-firm-btn-1',
+      '#mark-firm-btn-2', 
+      '#mark-firm-btn-3'
+    ];
+    
+    selectors.forEach(selector => {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach(el => el.remove());
+    });
+    
+    // Очищаємо кеш Utils
+    Utils.cache.clear();
+    
+    // Скидаємо прапорець ініціалізації
+    window.slExtensionInitialized = false;
+    window.historyManager = null;
+    window.slExtensionInstance = null;
+    
+    console.log("✅ Розширення очищено");
+>>>>>>> 3a26729 (Update NTS Server)
   }
   
   // === ЛІЧИЛЬНИК GENERATE ===
@@ -857,6 +1075,10 @@ class ExtensionInitializer {
       // Запускаємо розширення
       console.log("✅ Токен валідний, запускаємо розширення");
       const extension = new SLExtension();
+<<<<<<< HEAD
+=======
+      window.slExtensionInstance = extension; // Зберігаємо посилання для очищення
+>>>>>>> 3a26729 (Update NTS Server)
       extension.initialize();
 
     } catch (error) {
@@ -942,16 +1164,29 @@ class DomainChecker {
 class TokenMonitor {
   static checkInterval = null;
   static lastCheck = 0;
+<<<<<<< HEAD
+=======
+  static checkCount = 0;
+>>>>>>> 3a26729 (Update NTS Server)
   
   static start() {
     // Запускаємо першу перевірку через 60 секунд після ініціалізації
     setTimeout(() => {
+<<<<<<< HEAD
       // Перевіряємо кожні 15 секунд
       this.checkInterval = setInterval(() => {
         this.checkTokenStatus();
       }, 15000);
       
       console.log("🔍 TokenMonitor: Запущено автоматичну перевірку токена");
+=======
+      // Адаптивна частота перевірок: спочатку кожні 30 секунд, потім кожні 60 секунд
+      this.checkInterval = setInterval(() => {
+        this.checkTokenStatus();
+      }, 30000); // Збільшуємо до 30 секунд
+      
+      console.log("🔍 TokenMonitor: Запущено автоматичну перевірку токена (кожні 30с)");
+>>>>>>> 3a26729 (Update NTS Server)
     }, 60000);
   }
   
@@ -965,6 +1200,7 @@ class TokenMonitor {
   
   static async checkTokenStatus() {
     try {
+<<<<<<< HEAD
       const { nts_token } = await chrome.storage.local.get(['nts_token']);
     if (!nts_token) {
         console.log("🔍 TokenMonitor: Токен не знайдено");
@@ -1012,6 +1248,78 @@ class TokenMonitor {
         }
       } else {
         console.log("✅ TokenMonitor: Токен валідний");
+=======
+      // Перевіряємо чи пройшло достатньо часу з останньої перевірки
+      const now = Date.now();
+      if (now - this.lastCheck < 25000) return; // Мінімум 25 секунд між перевірками
+      this.lastCheck = now;
+      this.checkCount++;
+
+      const { nts_token } = await chrome.storage.local.get(['nts_token']);
+      if (!nts_token) {
+        console.log("🔍 TokenMonitor: Токен не знайдено");
+        return;
+      }
+
+      // Використовуємо AbortController для таймауту запиту
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 секунд таймаут
+
+      try {
+        const response = await fetch(`${CONFIG.API_BASE_URL}/token-status`, {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + nts_token },
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            console.log("🔍 TokenMonitor: Токен невалідний, видаляємо зі storage");
+            await chrome.storage.local.remove(['nts_token', 'nts_user_id']);
+            
+            // Показуємо повідомлення про вихід
+            this.showLogoutMessage();
+            
+            // Перезавантажуємо сторінку через 2 секунди
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          } else if (response.status === 404) {
+            console.log("🔍 TokenMonitor: Endpoint /token-status не знайдено, використовуємо /verify");
+            // Fallback до /verify endpoint
+            const verifyResponse = await fetch(`${CONFIG.API_BASE_URL}/verify`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token: nts_token }),
+              signal: controller.signal
+            });
+            
+            if (!verifyResponse.ok) {
+              console.log("🔍 TokenMonitor: Токен невалідний через /verify");
+              await chrome.storage.local.remove(['nts_token', 'nts_user_id']);
+              this.showLogoutMessage();
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
+            } else {
+              console.log("✅ TokenMonitor: Токен валідний через /verify");
+            }
+          } else {
+            console.log("🔍 TokenMonitor: Помилка сервера, пропускаємо перевірку");
+          }
+        } else {
+          console.log("✅ TokenMonitor: Токен валідний");
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          console.log("🔍 TokenMonitor: Таймаут запиту, пропускаємо перевірку");
+        } else {
+          throw fetchError;
+        }
+>>>>>>> 3a26729 (Update NTS Server)
       }
     } catch (error) {
       console.error("🔍 TokenMonitor: Помилка перевірки токена:", error);
@@ -1116,10 +1424,21 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     // Якщо токен був видалений (logout з адмін панелі)
     if (!changes.nts_token.newValue) {
       console.log("🚪 ExtensionInitializer: Токен видалено, показуємо повідомлення");
+<<<<<<< HEAD
+=======
+      
+      // Очищаємо розширення, якщо воно ініціалізовано
+      if (window.slExtensionInstance && typeof window.slExtensionInstance.cleanup === 'function') {
+        window.slExtensionInstance.cleanup();
+      }
+      
+      // Показуємо повідомлення про вихід
+>>>>>>> 3a26729 (Update NTS Server)
       TokenMonitor.showLogoutMessage();
       
       // Перезавантажуємо через 2 секунди
       setTimeout(() => {
+<<<<<<< HEAD
         location.reload();
       }, 2000);
     } else {
@@ -1128,3 +1447,15 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     }
   }
 });
+=======
+        window.location.reload();
+      }, 2000);
+    } else {
+      // Якщо токен змінився, просто перезавантажуємо
+      setTimeout(() => {
+        location.reload();
+      }, 500);
+    }
+  }
+});
+>>>>>>> 3a26729 (Update NTS Server)

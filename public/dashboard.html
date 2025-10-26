@@ -190,6 +190,11 @@
                 <tr>
                   <th>Користувач</th>
                   <th>Тег</th>
+<<<<<<< HEAD
+=======
+                  <th>IP адреса</th>
+                  <th>Локація</th>
+>>>>>>> 3a26729 (Update NTS Server)
                   <th>Статус</th>
                   <th>Остання активність</th>
                   <th>Дії</th>
@@ -197,6 +202,79 @@
               </thead>
               <tbody id="sessionsTable">
                 <tr>
+<<<<<<< HEAD
+=======
+                  <td colspan="7">Завантаження...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Блок безпеки -->
+      <div class="admin-block security-block">
+        <div class="block-header">
+          <h3>🔒 Безпека</h3>
+        </div>
+        
+        <!-- Статистика безпеки -->
+        <div class="security-stats">
+          <h4>Статистика безпеки</h4>
+          <div id="securityStats">
+            <p>Завантаження...</p>
+          </div>
+        </div>
+        
+        <!-- Управління дозволеними IP -->
+        <div class="allowed-ips-section">
+          <h4>Дозволені IP адреси</h4>
+          <div class="ip-controls">
+            <input type="text" id="newAllowedIP" placeholder="IP адреса (наприклад: 192.168.1.100)">
+            <input type="text" id="newAllowedIPDesc" placeholder="Опис (опціонально)">
+            <button id="addAllowedIPBtn" class="add-ip-btn">➕ Додати</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>IP адреса</th>
+                  <th>Опис</th>
+                  <th>Дата додавання</th>
+                  <th>Дії</th>
+                </tr>
+              </thead>
+              <tbody id="allowedIPsTable">
+                <tr>
+                  <td colspan="4">Завантаження...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Управління заблокованими IP -->
+        <div class="blocked-ips-section">
+          <h4>Заблоковані IP адреси</h4>
+          <div class="ip-controls">
+            <input type="text" id="newBlockedIP" placeholder="IP адреса (наприклад: 192.168.1.200)">
+            <input type="text" id="newBlockedIPReason" placeholder="Причина блокування">
+            <button id="addBlockedIPBtn" class="block-ip-btn danger">🚫 Заблокувати</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>IP адреса</th>
+                  <th>Причина</th>
+                  <th>Заблоковано</th>
+                  <th>Ким</th>
+                  <th>Дії</th>
+                </tr>
+              </thead>
+              <tbody id="blockedIPsTable">
+                <tr>
+>>>>>>> 3a26729 (Update NTS Server)
                   <td colspan="5">Завантаження...</td>
                 </tr>
               </tbody>

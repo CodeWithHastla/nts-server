@@ -13,7 +13,7 @@ let generateCount = 0;
 let autoLogoutTimer = null;
 
 // Константи
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = "http://164.92.182.162:8000";
 const AUTO_LOGOUT_HOURS = 4;
 const AUTO_LOGOUT_MS = AUTO_LOGOUT_HOURS * 60 * 60 * 1000;
 

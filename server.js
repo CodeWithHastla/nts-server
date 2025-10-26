@@ -9,6 +9,49 @@ const cors = require('cors');
 
 const app = express();
 
+// --- Налаштування часового поясу ---
+process.env.TZ = 'Europe/Warsaw';
+
+// --- Функція форматування дати для Польщі ---
+function formatDateTimeForPoland(dateString) {
+  if (!dateString) return 'Не вказано';
+  
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleString('pl-PL', {
+      timeZone: 'Europe/Warsaw',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString;
+  }
+}
+
+// --- Функція форматування дати (тільки дата) для Польщі ---
+function formatDateForPoland(dateString) {
+  if (!dateString) return 'Не вказано';
+  
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pl-PL', {
+      timeZone: 'Europe/Warsaw',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString;
+  }
+}
+
 // --- Функція логування ---
 function logSystemEvent(level, message, user = null, ip = null) {
   db.run(
@@ -22,10 +65,110 @@ function logSystemEvent(level, message, user = null, ip = null) {
   );
 }
 
+<<<<<<< HEAD
+=======
+// --- Функція отримання геолокації по IP ---
+async function getIPLocation(ip) {
+  try {
+    // Використовуємо безкоштовний API ipapi.co
+    const response = await fetch(`http://ipapi.co/${ip}/json/`);
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        country: data.country_name || 'Unknown',
+        city: data.city || 'Unknown',
+        region: data.region || 'Unknown',
+        timezone: data.timezone || 'Unknown'
+      };
+    }
+  } catch (error) {
+    console.error('Error fetching IP location:', error);
+  }
+  
+  // Fallback дані
+  return {
+    country: 'Unknown',
+    city: 'Unknown', 
+    region: 'Unknown',
+    timezone: 'Unknown'
+  };
+}
+
+// --- Функція перевірки IP адреси ---
+async function checkIPAccess(ip, req) {
+  try {
+    // Перевіряємо чи IP заблокований
+    const blockedIP = await new Promise((resolve) => {
+      db.get('SELECT * FROM blocked_ips WHERE ip_address = ? AND is_active = 1', [ip], (err, row) => {
+        if (err) {
+          console.error('Error checking blocked IP:', err);
+          resolve(null);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+    
+    if (blockedIP) {
+      logSystemEvent('warn', `Blocked IP attempt: ${ip}`, null, ip);
+      return { allowed: false, reason: 'IP заблокований' };
+    }
+    
+    // Перевіряємо чи IP в списку дозволених (якщо є обмеження)
+    const allowedIPs = await new Promise((resolve) => {
+      db.all('SELECT * FROM allowed_ips WHERE is_active = 1', [], (err, rows) => {
+        if (err) {
+          console.error('Error checking allowed IPs:', err);
+          resolve([]);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+    
+    // Якщо є список дозволених IP, перевіряємо чи поточний IP в ньому
+    if (allowedIPs.length > 0) {
+      const isAllowed = allowedIPs.some(allowedIP => allowedIP.ip_address === ip);
+      if (!isAllowed) {
+        logSystemEvent('warn', `Unauthorized IP attempt: ${ip}`, null, ip);
+        return { allowed: false, reason: 'IP не в списку дозволених' };
+      }
+    }
+    
+    return { allowed: true };
+  } catch (error) {
+    console.error('Error checking IP access:', error);
+    return { allowed: true }; // У разі помилки дозволяємо доступ
+  }
+}
+
 // Middleware для логування запитів
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] ${req.method} ${req.path} - IP: ${req.ip}`);
+  next();
+});
+
+// Middleware для перевірки IP адреси
+app.use(async (req, res, next) => {
+  const ip = req.ip || req.connection.remoteAddress;
+  
+  // Перевіряємо доступ IP
+  const ipCheck = await checkIPAccess(ip, req);
+  if (!ipCheck.allowed) {
+    return res.status(403).json({ 
+      message: 'Доступ заборонено', 
+      reason: ipCheck.reason,
+      ip: ip 
+    });
+  }
+  
+  // Додаємо інформацію про IP до запиту
+  req.ipInfo = {
+    ip: ip,
+    userAgent: req.get('User-Agent') || 'Unknown'
+  };
+  
   next();
 });
 
@@ -43,7 +186,9 @@ app.use(cors());
 
 app.use(express.static('public'));
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8000;
+>>>>>>> 3a26729 (Update NTS Server)
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_change_this_in_production';
 // --- Валідація вхідних даних ---
 function validateUserInput(username, password) {
@@ -192,14 +337,36 @@ db.run(`
 // Додаємо нові колонки до існуючої таблиці (якщо вони не існують)
 db.run(`ALTER TABLE users ADD COLUMN tag TEXT DEFAULT NULL`, (err) => {
   if (err && !err.message.includes('duplicate column name')) {
+=======
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    is_admin INTEGER DEFAULT 0
+  )
+`, (err) => {
+  if (err) {
+    console.error('Error creating users table:', err);
+  } else {
+    console.log('✅ Users table ready');
+  }
+});
+
+// Додаємо нові колонки до існуючої таблиці (якщо вони не існують)
+db.run(`ALTER TABLE users ADD COLUMN tag TEXT DEFAULT NULL`, (err) => {
+  if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+>>>>>>> 3a26729 (Update NTS Server)
     console.error('Error adding tag column:', err);
   }
 });
 
 db.run(`ALTER TABLE users ADD COLUMN created_at TEXT DEFAULT NULL`, (err) => {
+<<<<<<< HEAD
   if (err && !err.message.includes('duplicate column name')) {
     console.error('Error adding created_at column:', err);
   } else {
+=======
+  if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+    console.error('Error adding created_at column:', err);
+  } else if (!err) {
+>>>>>>> 3a26729 (Update NTS Server)
     // Оновлюємо існуючі записи з поточною датою
     db.run(`UPDATE users SET created_at = datetime('now') WHERE created_at IS NULL`, (err) => {
       if (err) {
@@ -210,9 +377,15 @@ db.run(`ALTER TABLE users ADD COLUMN created_at TEXT DEFAULT NULL`, (err) => {
 });
 
 db.run(`ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0`, (err) => {
+<<<<<<< HEAD
   if (err && !err.message.includes('duplicate column name')) {
     console.error('Error adding is_admin column:', err);
   } else {
+=======
+  if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+    console.error('Error adding is_admin column:', err);
+  } else if (!err) {
+>>>>>>> 3a26729 (Update NTS Server)
     // Встановлюємо Admin користувача як адміна
     db.run(`UPDATE users SET is_admin = 1 WHERE username = 'Admin'`, (err) => {
       if (err) {
@@ -251,12 +424,47 @@ db.run(`
     username TEXT NOT NULL,
     token TEXT NOT NULL,
     ip TEXT,
+<<<<<<< HEAD
+=======
+    country TEXT,
+    city TEXT,
+    region TEXT,
+    timezone TEXT,
+    user_agent TEXT,
+>>>>>>> 3a26729 (Update NTS Server)
     login_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT 1
   )
 `);
 
+<<<<<<< HEAD
+=======
+// Таблиця для дозволених IP адрес
+db.run(`
+  CREATE TABLE IF NOT EXISTS allowed_ips (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip_address TEXT UNIQUE NOT NULL,
+    country TEXT,
+    description TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT 1
+  )
+`);
+
+// Таблиця для блокування IP адрес
+db.run(`
+  CREATE TABLE IF NOT EXISTS blocked_ips (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip_address TEXT UNIQUE NOT NULL,
+    reason TEXT,
+    blocked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    blocked_by TEXT,
+    is_active BOOLEAN DEFAULT 1
+  )
+`);
+
+>>>>>>> 3a26729 (Update NTS Server)
 // --- Додаємо користувача Admin, якщо його ще немає ---
 const adminUser = 'Admin';
 const adminPass = 'Admin';
@@ -293,9 +501,15 @@ db.run(`
   SET is_active = 0 
   WHERE datetime('now', '-24 hours') > last_activity AND is_active = 1
 `, [], function(err) {
+<<<<<<< HEAD
   if (err) {
     console.error('Error cleaning up old sessions:', err);
   } else if (this.changes > 0) {
+=======
+  if (err && !err.message.includes('no such table')) {
+    console.error('Error cleaning up old sessions:', err);
+  } else if (!err && this.changes > 0) {
+>>>>>>> 3a26729 (Update NTS Server)
     console.log(`🧹 Очищено ${this.changes} старих сесій при запуску`);
   }
 });
@@ -323,18 +537,43 @@ app.post('/login', (req, res) => {
 
     const token = jwt.sign({ username: user.username }, JWT_SECRET, { expiresIn: '24h' });
     
+<<<<<<< HEAD
     // Додаємо сесію в активні
     db.run(`
       INSERT INTO active_sessions (username, token, ip, login_time, last_activity, is_active)
       VALUES (?, ?, ?, datetime('now'), datetime('now'), 1)
     `, [user.username, token, req.ip], (err) => {
+=======
+    // Отримуємо геолокацію IP
+    const location = await getIPLocation(req.ip);
+    
+    // Додаємо сесію в активні з геолокацією
+    db.run(`
+      INSERT INTO active_sessions (username, token, ip, country, city, region, timezone, user_agent, login_time, last_activity, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), 1)
+    `, [
+      user.username, 
+      token, 
+      req.ip, 
+      location.country, 
+      location.city, 
+      location.region, 
+      location.timezone,
+      req.ipInfo.userAgent
+    ], (err) => {
+>>>>>>> 3a26729 (Update NTS Server)
       if (err) {
         console.error('Error adding active session:', err);
       }
     });
     
+<<<<<<< HEAD
     // Логуємо успішний логін
     logSystemEvent('info', `User ${user.username} logged in successfully`, user.username, req.ip);
+=======
+    // Логуємо успішний логін з геолокацією
+    logSystemEvent('info', `User ${user.username} logged in from ${location.country}, ${location.city}`, user.username, req.ip);
+>>>>>>> 3a26729 (Update NTS Server)
     
     res.json({ token });
     } catch (error) {
@@ -502,8 +741,19 @@ app.get('/users', authenticateToken, requireAdmin, (req, res) => {
         return res.status(500).json({ message: 'Internal server error' });
       }
       
+<<<<<<< HEAD
       res.json({
         users: rows,
+=======
+      // Форматуємо дати для Польщі
+      const formattedUsers = rows.map(user => ({
+        ...user,
+        created_at_formatted: formatDateForPoland(user.created_at)
+      }));
+      
+      res.json({
+        users: formattedUsers,
+>>>>>>> 3a26729 (Update NTS Server)
         pagination: {
           currentPage: page,
           totalPages: totalPages,
@@ -692,8 +942,19 @@ app.get('/logs', authenticateToken, requireAdmin, (req, res) => {
       const total = countResult.total;
       const totalPages = Math.ceil(total / limit);
       
+<<<<<<< HEAD
       res.json({
         logs: rows,
+=======
+      // Форматуємо дати для Польщі
+      const formattedLogs = rows.map(log => ({
+        ...log,
+        timestamp_formatted: formatDateTimeForPoland(log.timestamp)
+      }));
+      
+      res.json({
+        logs: formattedLogs,
+>>>>>>> 3a26729 (Update NTS Server)
         pagination: {
           currentPage: page,
           totalPages: totalPages,
@@ -757,8 +1018,19 @@ app.get('/users/search', authenticateToken, requireAdmin, (req, res) => {
       const total = countResult.total;
       const totalPages = Math.ceil(total / limit);
       
+<<<<<<< HEAD
       res.json({
         users: rows,
+=======
+      // Форматуємо дати для Польщі
+      const formattedUsers = rows.map(user => ({
+        ...user,
+        created_at_formatted: formatDateForPoland(user.created_at)
+      }));
+      
+      res.json({
+        users: formattedUsers,
+>>>>>>> 3a26729 (Update NTS Server)
         pagination: {
           currentPage: page,
           totalPages: totalPages,
@@ -864,7 +1136,11 @@ app.get('/users/export', authenticateToken, requireAdmin, (req, res) => {
     if (format === 'csv') {
       let csv = 'ID,Username,Tag,Created At\n';
       rows.forEach(row => {
+<<<<<<< HEAD
         csv += `${row.id},"${row.username}","${row.tag || ''}","${row.created_at || ''}"\n`;
+=======
+        csv += `${row.id},"${row.username}","${row.tag || ''}","${formatDateTimeForPoland(row.created_at)}"\n`;
+>>>>>>> 3a26729 (Update NTS Server)
       });
       
       res.setHeader('Content-Type', 'text/csv');
@@ -885,6 +1161,11 @@ app.get('/sessions', authenticateToken, requireAdmin, (req, res) => {
       s.login_time,
       s.last_activity,
       s.ip,
+      s.country,
+      s.city,
+      s.region,
+      s.timezone,
+      s.user_agent,
       u.tag,
       u.id
     FROM active_sessions s
@@ -908,8 +1189,16 @@ app.get('/sessions', authenticateToken, requireAdmin, (req, res) => {
       id: session.id,
       tag: session.tag,
       login_time: session.login_time,
+      login_time_formatted: formatDateTimeForPoland(session.login_time),
       last_activity: session.last_activity,
+      last_activity_formatted: formatDateTimeForPoland(session.last_activity),
       ip: session.ip,
+      location: `${session.city}, ${session.country}`,
+      country: session.country,
+      city: session.city,
+      region: session.region,
+      timezone: session.timezone,
+      user_agent: session.user_agent,
       status: 'online'
     }));
     
@@ -1020,11 +1309,21 @@ app.post('/sessions/logout-all', authenticateToken, requireAdmin, (req, res) => 
   });
 });
 
+<<<<<<< HEAD
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📁 Serving static files from: public/`);
   console.log(`🔐 JWT Secret: ${JWT_SECRET.substring(0, 10)}...`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+=======
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on http://164.92.182.162:${PORT}`);
+  console.log(`🌐 Network access: http://164.92.182.162:${PORT}`);
+  console.log(`📁 Serving static files from: public/`);
+  console.log(`🔐 JWT Secret: ${JWT_SECRET.substring(0, 10)}...`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📡 Listening on all network interfaces (0.0.0.0:${PORT})`);
+>>>>>>> 3a26729 (Update NTS Server)
 });
 
 // --- Очищення старих сесій ---
@@ -1058,6 +1357,155 @@ app.get('/health', (req, res) => {
   });
 });
 
+<<<<<<< HEAD
+=======
+// --- Управління дозволеними IP адресами ---
+app.get('/security/allowed-ips', authenticateToken, requireAdmin, (req, res) => {
+  db.all('SELECT * FROM allowed_ips ORDER BY created_at DESC', [], (err, rows) => {
+    if (err) {
+      console.error('Error fetching allowed IPs:', err);
+      return res.status(500).json({ message: 'Помилка отримання дозволених IP' });
+    }
+    
+    // Форматуємо дати для Польщі
+    const formattedIPs = rows.map(ip => ({
+      ...ip,
+      created_at_formatted: formatDateForPoland(ip.created_at)
+    }));
+    
+    res.json({ allowedIPs: formattedIPs });
+  });
+});
+
+app.post('/security/allowed-ips', authenticateToken, requireAdmin, (req, res) => {
+  const { ip_address, description } = req.body;
+  
+  if (!ip_address) {
+    return res.status(400).json({ message: 'IP адреса обов\'язкова' });
+  }
+  
+  db.run('INSERT INTO allowed_ips (ip_address, description) VALUES (?, ?)', 
+    [ip_address, description || ''], function(err) {
+      if (err) {
+        console.error('Error adding allowed IP:', err);
+        if (err.message.includes('UNIQUE constraint failed')) {
+          return res.status(409).json({ message: 'IP адреса вже існує' });
+        }
+        return res.status(500).json({ message: 'Помилка додавання IP' });
+      }
+      
+      res.json({ 
+        message: `IP адреса ${ip_address} додана до дозволених`, 
+        id: this.lastID 
+      });
+    });
+});
+
+app.delete('/security/allowed-ips/:id', authenticateToken, requireAdmin, (req, res) => {
+  const { id } = req.params;
+  
+  db.run('DELETE FROM allowed_ips WHERE id = ?', [id], function(err) {
+    if (err) {
+      console.error('Error deleting allowed IP:', err);
+      return res.status(500).json({ message: 'Помилка видалення IP' });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ message: 'IP адреса не знайдена' });
+    }
+    res.json({ message: 'IP адреса видалена з дозволених' });
+  });
+});
+
+// --- Управління заблокованими IP адресами ---
+app.get('/security/blocked-ips', authenticateToken, requireAdmin, (req, res) => {
+  db.all('SELECT * FROM blocked_ips ORDER BY blocked_at DESC', [], (err, rows) => {
+    if (err) {
+      console.error('Error fetching blocked IPs:', err);
+      return res.status(500).json({ message: 'Помилка отримання заблокованих IP' });
+    }
+    
+    // Форматуємо дати для Польщі
+    const formattedIPs = rows.map(ip => ({
+      ...ip,
+      blocked_at_formatted: formatDateForPoland(ip.blocked_at)
+    }));
+    
+    res.json({ blockedIPs: formattedIPs });
+  });
+});
+
+app.post('/security/blocked-ips', authenticateToken, requireAdmin, (req, res) => {
+  const { ip_address, reason } = req.body;
+  
+  if (!ip_address) {
+    return res.status(400).json({ message: 'IP адреса обов\'язкова' });
+  }
+  
+  db.run('INSERT INTO blocked_ips (ip_address, reason, blocked_by) VALUES (?, ?, ?)', 
+    [ip_address, reason || 'Заблоковано адміністратором', req.user.username], function(err) {
+      if (err) {
+        console.error('Error adding blocked IP:', err);
+        if (err.message.includes('UNIQUE constraint failed')) {
+          return res.status(409).json({ message: 'IP адреса вже заблокована' });
+        }
+        return res.status(500).json({ message: 'Помилка блокування IP' });
+      }
+      
+      logSystemEvent('warn', `IP ${ip_address} blocked by ${req.user.username}`, req.user.username, req.ip);
+      res.json({ 
+        message: `IP адреса ${ip_address} заблокована`, 
+        id: this.lastID 
+      });
+    });
+});
+
+app.delete('/security/blocked-ips/:id', authenticateToken, requireAdmin, (req, res) => {
+  const { id } = req.params;
+  
+  db.run('DELETE FROM blocked_ips WHERE id = ?', [id], function(err) {
+    if (err) {
+      console.error('Error deleting blocked IP:', err);
+      return res.status(500).json({ message: 'Помилка розблокування IP' });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ message: 'IP адреса не знайдена' });
+    }
+    res.json({ message: 'IP адреса розблокована' });
+  });
+});
+
+// --- Статистика безпеки ---
+app.get('/security/stats', authenticateToken, requireAdmin, (req, res) => {
+  const queries = [
+    'SELECT COUNT(*) as total FROM allowed_ips WHERE is_active = 1',
+    'SELECT COUNT(*) as total FROM blocked_ips WHERE is_active = 1',
+    'SELECT country, COUNT(*) as count FROM active_sessions WHERE is_active = 1 GROUP BY country ORDER BY count DESC',
+    'SELECT ip, country, city, COUNT(*) as login_count FROM active_sessions WHERE is_active = 1 GROUP BY ip ORDER BY login_count DESC LIMIT 10'
+  ];
+  
+  Promise.all(queries.map(query => 
+    new Promise((resolve, reject) => {
+      db.all(query, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    })
+  ))
+  .then(([allowedCount, blockedCount, countryStats, topIPs]) => {
+    res.json({
+      allowedIPs: allowedCount[0].total,
+      blockedIPs: blockedCount[0].total,
+      countryDistribution: countryStats,
+      topIPs: topIPs
+    });
+  })
+  .catch(error => {
+    console.error('Security stats error:', error);
+    res.status(500).json({ message: 'Помилка отримання статистики безпеки' });
+  });
+});
+
+>>>>>>> 3a26729 (Update NTS Server)
 // --- Token status endpoint ---
 app.get('/token-status', authenticateToken, (req, res) => {
   res.json({ 
